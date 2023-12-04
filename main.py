@@ -10,8 +10,21 @@ url.maximize()
 
 url.sendKeys('//*[@id="edtEmpresa"]', 'Atlasbr')
 
-url.sendKeys('//*[@id="edtUsuario"]','12345678922')
+url.sendKeys('//*[@id="edtUsuario"]','49660821883')
 
 url.sendKeys('//*[@id="edtSenha"]','moby123')
 
 url.clickElement('//*[@id="frmPai"]/div/div[4]/div/i')
+
+url.clickElement('//*[@id="botaologistica"]/a')
+
+url.clickElement('//*[@id="logistica"]/li[2]/a')
+
+url.clickElement('//*[@id="relatorioLogistica"]/li[1]/a')
+
+url.switchWindow(1)
+
+url.sendKeys('//*[@id="mui-9"]','FVS5B06')
+
+time.sleep(300)
+
