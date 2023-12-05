@@ -1,5 +1,4 @@
 from link import Link
-import datetime
 import time
 
 url = Link('https://connect.atlasgr.com.br/portalatlas/Atlas_Login.php', 'Chrome', sleep=4, headless=False)
@@ -22,9 +21,25 @@ url.clickElement('//*[@id="logistica"]/li[2]/a')
 
 url.clickElement('//*[@id="relatorioLogistica"]/li[1]/a')
 
+time.sleep(2)
+
 url.switchWindow(1)
 
-url.sendKeys('//*[@id="mui-9"]','FVS5B06')
+url.sendKeys('//*[@id="mui-6"]','PERNOITE')
+
+url.pressDown()
+
+url.pressEnter()
+
+url.clickElement('//*[@id="__next"]/div[1]/form/button')
+
+time.sleep(2)
+
+url.clickElement('//*[@id="__next"]/div[2]/div/div/div[1]/div/div/button[1]')
+
+time.sleep(2)
+
+url.quitSite(1)
 
 time.sleep(300)
 
