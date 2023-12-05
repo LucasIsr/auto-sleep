@@ -35,11 +35,29 @@ url.clickElement('//*[@id="__next"]/div[1]/form/button')
 
 time.sleep(2)
 
-url.clickElement('//*[@id="__next"]/div[2]/div/div/div[1]/div/div/button[1]')
+#url.clickElement('//*[@id="__next"]/div[2]/div/div/div[1]/div/div/button[1]')
 
 time.sleep(2)
 
-url.quitSite(1)
+url.switchWindow(0)
+
+url.clickElement('/html/body/div/aside/section/ul/li[2]/ul/li[2]/ul/li[3]/a')
+
+time.sleep(2)
+
+url.switchWindow(2)
+
+time.sleep(1)
+
+url.sendKeys('//*[@id="mui-6"]','03/12/2023')
+
+url.sendKeys('/html/body/div/div[1]/form/div[4]/div/input','FVS5B06')
+
+url.clickElement('//*[@id="__next"]/div[1]/form/button')
+
+time.sleep(2)
+
+#url.clickElement('/html/body/div/div[2]/div/div/div[1]/div/div/button[1]')
 
 time.sleep(300)
 
