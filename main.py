@@ -18,3 +18,8 @@ for file in os.listdir(DOWNLOAD_PATH):
                 if 'Relatorio Posicao.xlsx' in file_placa:
                     placa_folder = PLACAS_PATH + f'\{placa}'
                     shutil.move(os.path.join(DOWNLOAD_PATH, file_placa), os.path.join(placa_folder, f'{placa}.xlsx'))
+
+                    for file in os.listdir(DOWNLOAD_PATH):
+                        if 'Relatorio Posicao.xlsx' in file:
+                            df = pd.read_excel
+                            print(df)
