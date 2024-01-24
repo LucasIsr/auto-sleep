@@ -165,6 +165,8 @@ class ReportsFunctions:
             file_path = os.path.join(placa_folder, str(folder) + '.xlsx')
             df = pd.read_excel(file_path)
             for _, row in df.iterrows():
-                print(row['Velocidade'])
-                time.sleep(0.5)
+                if row['Velocidade'] == 0:
+                    print(row['Velocidade'])
+                    print(row['Data'])
+                    time.sleep(0.5)
 ReportsFunctions.analyze_reports()
