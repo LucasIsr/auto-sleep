@@ -1,4 +1,8 @@
-from functions import extract_position
-from functions import extract_all_reports
-from functions import extract_alert
+from functions import AtlasFunctions
+from functions import ReportsFunctions
 
+AtlasFunctions.extract_alert()
+
+AtlasFunctions.extract_position()
+
+ReportsFunctions.extract_all_reports()
