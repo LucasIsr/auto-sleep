@@ -1,8 +1,11 @@
-from functions import AtlasFunctions
-from functions import ReportsFunctions
+from functions import AtlasFunctions, ReportsFunctions
 
-AtlasFunctions.extract_alert()
+# Extraindo o relatório principal de alertas contendo todas as placas necessárias
+#AtlasFunctions.extract_alert()
+print('Relatório de alertas extraído...')
 
-AtlasFunctions.extract_position()
+# Extraindo o relatório de cada placa baseado no relatório de alertas
+#ReportsFunctions.extract_all_reports()
 
-ReportsFunctions.extract_all_reports()
+
+ReportsFunctions.analyze_reports()
