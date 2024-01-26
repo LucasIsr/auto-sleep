@@ -4,18 +4,26 @@ from link.app.link import Link
 import os
 import shutil
 import pandas as pd
+from threading import Thread
 
 
+with open('paths.txt', mode='r', encoding='utf-8') as path_file:
+    for row in path_file:
+        if row.strip().split('=')[0] == 'DOWNLOAD_PATH':
+            DOWNLOAD_PATH = row.strip().split('=')[1]
 
-DOWNLOAD_PATH = r'/Users/fanecovsf/Downloads'
-PLACAS_PATH = r'/Users/fanecovsf/Downloads/placas' 
+        if row.strip().split('=')[0] == 'PLACAS_PATH':
+            PLACAS_PATH = row.strip().split('=')[1]
 
 
 class AtlasFunctions:
 
 
     @staticmethod
-    def extract_position(placa):
+    def extract_position():
+        '''
+        Metodo para extrair relatorio de posicao do Atlas
+        '''
         url = Link(url='https://connect.atlasgr.com.br/portalatlas/Atlas_Login.php', driver='Chrome', sleep=1)
 
         url.openLink()
@@ -73,18 +81,52 @@ class AtlasFunctions:
             except:
                 pass
             
-        url.sendKeys('//*[@id="mui-5"]', placa)
+        for file in os.listdir(DOWNLOAD_PATH):
+            if 'Relatorio Alertas.xlsx' in file:
+                df = pd.read_excel(os.path.join(DOWNLOAD_PATH, file))
+                df = df.drop_duplicates(subset='Placa')
+                for _, linha in df.iterrows():
+                    x = 0
+                    while x == 0:
+                        try:
+                            placa = linha['Placa']
+                            url.sendKeys('//*[@id="mui-5"]', placa)
 
-        url.pressKey('enter')
+                            url.pressKey('enter')
 
-        time.sleep(10)
+                            time.sleep(7)
 
-        url.clickElement('//*[@id="__next"]/div[2]/div/div/div[1]/div/div/button[1]')
+                            url.clickElement('//*[@id="__next"]/div[2]/div/div/div[1]/div/div/button[1]')
+
+                            url.clearText('//*[@id="mui-5"]')
+
+                            try:
+                                os.mkdir(os.path.join(PLACAS_PATH, placa))
+                            except:
+                                for file in os.listdir(os.path.join(PLACAS_PATH, placa)):
+                                    file_path = os.path.join(PLACAS_PATH, placa)
+                                    os.remove(os.path.join(file_path, file))
+
+                            for file_placa in os.listdir(DOWNLOAD_PATH):
+                                if 'Relatorio Posicao.xlsx' in file_placa:
+                                    placa_folder = os.path.join(PLACAS_PATH, placa)
+                                    shutil.move(os.path.join(DOWNLOAD_PATH, file_placa), os.path.join(placa_folder, f'{placa}.xlsx'))
+                                    thread = Thread(target=ReportsFunctions.analyze_reports(placa))
+                                    thread.start()
+
+                            x = 1
+                        except Exception as e:
+                            print(f'Erro na placa {placa}')
+                            print(str(e))
+                            pass
 
         url.quitSite()
 
     @staticmethod
     def extract_alert():
+        '''
+        Metodo utilizado para extrair o relatorio de alertas pernoite do Atlas 
+        '''
         url = Link(url='https://connect.atlasgr.com.br/portalatlas/Atlas_Login.php', driver='Chrome', sleep=1)
 
         url.openLink()
@@ -146,88 +188,143 @@ class ReportsFunctions:
 
 
     @staticmethod
-    def extract_all_reports():
-        """
-        Função usada para extrair todos os relatórios por placa, essa função já ira acionar a função 'extract_position' da AtlasFunctions
-        """
-
-        # Inicia a extração por placa
-        for file in os.listdir(DOWNLOAD_PATH):
-            if 'Relatorio Alertas.xlsx' in file:
-                df = pd.read_excel(os.path.join(DOWNLOAD_PATH, file))
-                df = df.drop_duplicates(subset='Placa')
-                for _, linha in df.iterrows():
-                    placa = linha['Placa']
-                    print(f'Iniciando extração da placa {placa}')
-                    AtlasFunctions.extract_position(placa)
-
-                    try:
-                        os.mkdir(os.path.join(PLACAS_PATH, placa))
-                    except:
-                        for file in os.listdir(os.path.join(PLACAS_PATH, placa)):
-                            file_path = os.path.join(PLACAS_PATH, placa)
-                            os.remove(os.path.join(file_path, file))
-
-                    for file_placa in os.listdir(DOWNLOAD_PATH):
-                        if 'Relatorio Posicao.xlsx' in file_placa:
-                            placa_folder = os.path.join(PLACAS_PATH, placa)
-                            shutil.move(os.path.join(DOWNLOAD_PATH, file_placa), os.path.join(placa_folder, f'{placa}.xlsx'))
-                            print(f'Placa {placa} extraída com sucesso')
-
-    @staticmethod
-    def analyze_reports():
-        for folder in os.listdir(PLACAS_PATH):
-            status_instersticio = 'Não cumprido'
-            placa_folder = os.path.join(PLACAS_PATH, folder)
-            file_path = os.path.join(placa_folder, str(folder) + '.xlsx')
-            df = pd.read_excel(file_path)
-
-            dict_inicial = {
-                'data': None,
-                'index': None
-            }
-
-            dict_final = {
-                'data': None,
-                'index': None
-            }
+    def analyze_reports(plate: str) -> None:
+        '''
+        Metodo que analisara o relatorio de posicoes e ira fazer o calculo de 8 horas descansadas
+        '''
+        # Cria o arquivo de resultados se não existir
+        if not os.path.exists(os.path.join(PLACAS_PATH, 'resultado.xlsx')):
+            df_result = pd.DataFrame(
+                    columns = ['Placa', 'Status']
+                )
             
-            contador = 1
+            df_result.to_excel(os.path.join(PLACAS_PATH, 'resultado.xlsx'))
+
+        if len(plate) == 7:
+            placa_folder = os.path.join(PLACAS_PATH, plate) # Juntando a pasta de placas geral com a placa tirada da planilha de alerta
+            file_path = os.path.join(placa_folder, str(plate) + '.xlsx') # Juntando o arquivo xlsx com a pasta da respectiva placa 
+            df = pd.read_excel(file_path) # Lendo o relatorio de posicao para tranformar em um data frame
+
+            dict_inicial = { # Dicionario criado para armazenar o index e data hora da primeira velocidade zerada 
+                'data': None,
+                'index': None
+            }
+
+            dict_final = { # Dicionario criado para armazenar index e data hota da ultima velocidade zerada
+                'data': None,
+                'index': None
+            }
+
+            dict_input = {
+                'Placa': [plate],
+                'Status': ['Não cumprido']
+            }
+                
+            contador = 1 # Responsavel por fazer a comparacao do index para saber se temos uma sequencia de velocidade zerada 
             for index, row in df.iterrows():
-                if row['Velocidade'] == 0:
-                    if not dict_inicial['data']:
+                if row['Velocidade'] == 0: # Entra na condicao abaixo se a velocidade for zero
+                    if not dict_inicial['data']: # Entra nessa condicao se o dict inicial nao estiver preenchido 
                         dict_inicial['data'] = row['Data']
                         dict_inicial['index'] = index
 
-                    else:
-                        if index - contador == dict_inicial['index']:
+                    else: # Se o dict inicial estiver preenchido ele coleta o index e data hora da ultima velocidade zerada 
+                        if index - contador == dict_inicial['index']: # Compara para saber se temos uma sequencia de velocidade zerada
                             contador += 1
                             dict_final['data'] = row['Data']
                             dict_final['index'] = index
 
-                else:
-                    if dict_inicial['data'] and dict_final['data']:
+                else: # Entra na condicao abaixo se a velocidade for maior que zero 
+                    if dict_inicial['data'] and dict_final['data']: # Armazena a data hora da primeira e ultima velocidade zerada 
                         calc_insterticio = datetime.datetime.strptime(dict_final['data'], '%d/%m/%Y-%H:%M:%S') - \
                             datetime.datetime.strptime(dict_inicial['data'], '%d/%m/%Y-%H:%M:%S')
+                            # Convertendo a data hora da planilha para datetime e fazendo o calculo de data final - data inicial 
+                            
+                        horas_realizadas = calc_insterticio.total_seconds() / 3600 # O resultado total de segundos sera divido por 3600s
+
+                        if horas_realizadas > 8.0 or df['CPF'].nunique() > 1: # Define o status como cumprido
+                            dict_input['Status'] = 'Cumprido'                      
+
+                            # Zera após fazer a comparação e o contador 
+                    dict_inicial['data'] = None
+                    dict_inicial['index'] = None
+
+                    dict_final['data'] = None
+                    dict_final['index'] = None
+                    contador = 1
+
+            df_result = pd.read_excel(os.path.join(PLACAS_PATH, 'resultado.xlsx'))
+
+            df_main = pd.DataFrame(
+                dict_input
+            )
                         
-                        horas_realizadas = calc_insterticio.total_seconds() / 3600
+            df_result = pd.concat([df_result, df_main])
+            df_result = df_result[['Placa', 'Status']]
+            df_result.to_excel(os.path.join(PLACAS_PATH, 'resultado.xlsx'))
 
-                        print(f'Horas cumpridas da placa {folder}: {horas_realizadas}')
-
-                        if horas_realizadas > 8.0:
-                            status_instersticio = 'Cumprido'
-
-                        # Zera após fazer a comparação
-                        dict_inicial['data'] = None
-                        dict_inicial['index'] = None
-
-                        dict_final['data'] = None
-                        dict_final['index'] = None
-
-            print(f'Status interstício da placa {folder}: {status_instersticio}')
-            print('------------------------------------')
+            # Deleta pasta e arquivo da placa em questão
+            os.remove(file_path)
+            os.remove(placa_folder)
                         
+    @staticmethod
+    def analyze_reports_manual(plate: str) -> None:
+        '''
+        Método para analisar manualmente uma placa e validar a mesma
+        '''
 
+        if len(plate) == 7:
+            placa_folder = os.path.join(PLACAS_PATH, plate) # Juntando a pasta de placas geral com a placa tirada da planilha de alerta
+            file_path = os.path.join(placa_folder, str(plate) + '.xlsx') # Juntando o arquivo xlsx com a pasta da respectiva placa 
+            df = pd.read_excel(file_path) # Lendo o relatorio de posicao para tranformar em um data frame
+            dict_inicial = { # Dicionario criado para armazenar o index e data hora da primeira velocidade zerada 
+                'data': None,
+                'index': None
+            }
 
+            dict_final = { # Dicionario criado para armazenar index e data hota da ultima velocidade zerada
+                'data': None,
+                'index': None
+            }
 
+            dict_input = {
+                'Placa': [plate],
+                'Status': ['Não cumprido']
+            }
+                
+            contador = 1 # Responsavel por fazer a comparacao do index para saber se temos uma sequencia de velocidade zerada 
+            for index, row in df.iterrows():
+                if row['Velocidade'] == 0: # Entra na condicao abaixo se a velocidade for zero
+                    if not dict_inicial['data']: # Entra nessa condicao se o dict inicial nao estiver preenchido 
+                        dict_inicial['data'] = row['Data']
+                        dict_inicial['index'] = index
+
+                    else: # Se o dict inicial estiver preenchido ele coleta o index e data hora da ultima velocidade zerada 
+                        if index - contador == dict_inicial['index']: # Compara para saber se temos uma sequencia de velocidade zerada
+                            contador += 1
+                            dict_final['data'] = row['Data']
+                            dict_final['index'] = index
+
+                else: # Entra na condicao abaixo se a velocidade for maior que zero 
+                    if dict_inicial['data'] and dict_final['data']: # Armazena a data hora da primeira e ultima velocidade zerada 
+                        calc_insterticio = datetime.datetime.strptime(dict_final['data'], '%d/%m/%Y-%H:%M:%S') - \
+                            datetime.datetime.strptime(dict_inicial['data'], '%d/%m/%Y-%H:%M:%S')
+                            # Convertendo a data hora da planilha para datetime e fazendo o calculo de data final - data inicial 
+                            
+                        horas_realizadas = calc_insterticio.total_seconds() / 3600 # O resultado total de segundos sera divido por 3600s
+
+                        if horas_realizadas > 8.0 or df['CPF'].nunique() > 1: # Define o status como cumprido
+                            dict_input['Status'] = 'Cumprido'
+
+                        print(f'Index inicial: {dict_inicial["index"]}    Data inicial: {dict_inicial["data"]}')
+                        print(f'Index final: {dict_final["index"]}    Data final: {dict_final["data"]}') 
+                        print(f'Horas de descanso realizadas: {horas_realizadas}') 
+                        print('\n')                  
+
+                    # Zera após fazer a comparação e o contador 
+                    dict_inicial['data'] = None
+                    dict_inicial['index'] = None
+
+                    dict_final['data'] = None
+                    dict_final['index'] = None
+                    contador = 1
 
