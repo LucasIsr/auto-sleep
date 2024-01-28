@@ -24,6 +24,15 @@ class AtlasFunctions:
         '''
         Metodo para extrair relatorio de posicao do Atlas
         '''
+
+    with open('paths.txt', mode='r', encoding='utf-8') as path_file:
+        for row in path_file:
+            if row.strip().split('=')[0] == 'USUARIO':
+                USUARIO = row.strip().split('=')[1]
+
+            if row.strip().split('=')[0] == 'SENHA':
+                SENHA = row.strip().split('=')[1]
+
         url = Link(url='https://connect.atlasgr.com.br/portalatlas/Atlas_Login.php', driver='Chrome', sleep=1)
 
         url.openLink()
@@ -32,9 +41,9 @@ class AtlasFunctions:
 
         url.sendKeys('//*[@id="edtEmpresa"]', 'Atlasbr')
 
-        url.sendKeys('//*[@id="edtUsuario"]','49660821883')
+        url.sendKeys('//*[@id="edtUsuario"]', USUARIO)
 
-        url.sendKeys('//*[@id="edtSenha"]','Lk206049')
+        url.sendKeys('//*[@id="edtSenha"]', SENHA)
 
         url.clickElement('//*[@id="frmPai"]/div/div[4]/div/i')
 
@@ -50,7 +59,7 @@ class AtlasFunctions:
 
         url.clearText('//*[@id="mui-6"]')
 
-        d2 = datetime.date.today() - datetime.timedelta(days=2)
+        d2 = datetime.date.today() - datetime.timedelta(days=1)
         d2 = d2.strftime('%d%m%Y')
         d1 = datetime.date.today() - datetime.timedelta(days=1)
         d1 = d1.strftime('%d%m%Y')
@@ -127,6 +136,15 @@ class AtlasFunctions:
         '''
         Metodo utilizado para extrair o relatorio de alertas pernoite do Atlas 
         '''
+    with open('paths.txt', mode='r', encoding='utf-8') as path_file:
+        for row in path_file:
+            if row.strip().split('=')[0] == 'USUARIO':
+                USUARIO = row.strip().split('=')[1]
+
+            if row.strip().split('=')[0] == 'SENHA':
+                SENHA = row.strip().split('=')[1]
+
+
         url = Link(url='https://connect.atlasgr.com.br/portalatlas/Atlas_Login.php', driver='Chrome', sleep=1)
 
         url.openLink()
@@ -137,9 +155,9 @@ class AtlasFunctions:
 
         url.sendKeys('//*[@id="edtEmpresa"]', 'ATLASBR')
 
-        url.sendKeys('//*[@id="edtUsuario"]','49660821883')
+        url.sendKeys('//*[@id="edtUsuario"]', USUARIO )
 
-        url.sendKeys('//*[@id="edtSenha"]','Lk206049')
+        url.sendKeys('//*[@id="edtSenha"]', SENHA )
 
         url.clickElement('//*[@id="frmPai"]/div/div[4]/div/i')
 
@@ -155,7 +173,7 @@ class AtlasFunctions:
 
         url.clearField('//*[@id="mui-6"]')
 
-        d2 = datetime.date.today() - datetime.timedelta(days=2)
+        d2 = datetime.date.today() - datetime.timedelta(days=1)
         d2 = str(d2.strftime('%d/%m/%Y'))
         url.clearText('//*[@id="mui-10"]')
         url.sendKeys('//*[@id="mui-10"]', d2)
