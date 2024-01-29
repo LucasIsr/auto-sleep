@@ -25,13 +25,13 @@ class AtlasFunctions:
         Metodo para extrair relatorio de posicao do Atlas
         '''
 
-    with open('paths.txt', mode='r', encoding='utf-8') as path_file:
-        for row in path_file:
-            if row.strip().split('=')[0] == 'USUARIO':
-                USUARIO = row.strip().split('=')[1]
+        with open('paths.txt', mode='r', encoding='utf-8') as path_file:
+            for row in path_file:
+                if row.strip().split('=')[0] == 'USUARIO':
+                    USUARIO = row.strip().split('=')[1]
 
-            if row.strip().split('=')[0] == 'SENHA':
-                SENHA = row.strip().split('=')[1]
+                if row.strip().split('=')[0] == 'SENHA':
+                    SENHA = row.strip().split('=')[1]
 
         url = Link(url='https://connect.atlasgr.com.br/portalatlas/Atlas_Login.php', driver='Chrome', sleep=1)
 
@@ -136,13 +136,13 @@ class AtlasFunctions:
         '''
         Metodo utilizado para extrair o relatorio de alertas pernoite do Atlas 
         '''
-    with open('paths.txt', mode='r', encoding='utf-8') as path_file:
-        for row in path_file:
-            if row.strip().split('=')[0] == 'USUARIO':
-                USUARIO = row.strip().split('=')[1]
+        with open('paths.txt', mode='r', encoding='utf-8') as path_file:
+            for row in path_file:
+                if row.strip().split('=')[0] == 'USUARIO':
+                    USUARIO = row.strip().split('=')[1]
 
-            if row.strip().split('=')[0] == 'SENHA':
-                SENHA = row.strip().split('=')[1]
+                if row.strip().split('=')[0] == 'SENHA':
+                    SENHA = row.strip().split('=')[1]
 
 
         url = Link(url='https://connect.atlasgr.com.br/portalatlas/Atlas_Login.php', driver='Chrome', sleep=1)
