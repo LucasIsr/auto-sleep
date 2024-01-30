@@ -131,6 +131,11 @@ class AtlasFunctions:
 
         url.quitSite()
 
+        time.sleep(10)
+        for folder in os.listdir(PLACAS_PATH):
+            if folder not in 'resultado':
+                os.remove(os.path.join(PLACAS_PATH, folder))
+
     @staticmethod
     def extract_alert():
         '''
@@ -279,10 +284,6 @@ class ReportsFunctions:
             df_result = pd.concat([df_result, df_main])
             df_result = df_result[['Placa', 'Status']]
             df_result.to_excel(os.path.join(PLACAS_PATH, 'resultado.xlsx'))
-
-            # Deleta pasta e arquivo da placa em questão
-            os.remove(file_path)
-            os.remove(placa_folder)
                         
     @staticmethod
     def analyze_reports_manual(plate: str) -> None:
