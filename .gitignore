@@ -162,3 +162,5 @@ cython_debug/
 db.txt
 .venv/
 paths.txt
+chromedriver
+chromedriver.exe

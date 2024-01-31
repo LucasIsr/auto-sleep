@@ -103,7 +103,7 @@ class AtlasFunctions:
 
                             url.pressKey('enter')
 
-                            time.sleep(7)
+                            time.sleep(3)
 
                             url.clickElement('//*[@id="__next"]/div[2]/div/div/div[1]/div/div/button[1]')
 
@@ -131,10 +131,15 @@ class AtlasFunctions:
 
         url.quitSite()
 
-        time.sleep(10)
+        time.sleep(3)
         for folder in os.listdir(PLACAS_PATH):
-            if folder not in 'resultado':
-                os.remove(os.path.join(PLACAS_PATH, folder))
+            if 'resultado' not in folder:
+                os.remove(os.path.join(os.path.join(PLACAS_PATH, folder), f'{folder}.xlsx'))
+                os.rmdir(os.path.join(PLACAS_PATH, folder))
+
+        for file in os.listdir(DOWNLOAD_PATH):
+            if 'Relatorio Alertas.xlsx' in file:
+                os.remove(os.path.join(DOWNLOAD_PATH, file))
 
     @staticmethod
     def extract_alert():
@@ -256,6 +261,13 @@ class ReportsFunctions:
                             dict_final['data'] = row['Data']
                             dict_final['index'] = index
 
+                elif row['Velocidade'] <= 10 and row['Velocidade'] > 0:
+                    if dict_inicial['data']:
+                        if index - contador == dict_inicial['index']:
+                            contador += 1
+                            dict_final['data'] = row['Data']
+                            dict_final['index'] = index
+
                 else: # Entra na condicao abaixo se a velocidade for maior que zero 
                     if dict_inicial['data'] and dict_final['data']: # Armazena a data hora da primeira e ultima velocidade zerada 
                         calc_insterticio = datetime.datetime.strptime(dict_final['data'], '%d/%m/%Y-%H:%M:%S') - \
@@ -267,7 +279,7 @@ class ReportsFunctions:
                         if horas_realizadas > 8.0 or df['CPF'].nunique() > 1: # Define o status como cumprido
                             dict_input['Status'] = 'Cumprido'                      
 
-                            # Zera após fazer a comparação e o contador 
+                    # Zera após fazer a comparação e o contador 
                     dict_inicial['data'] = None
                     dict_inicial['index'] = None
 
@@ -288,7 +300,7 @@ class ReportsFunctions:
     @staticmethod
     def analyze_reports_manual(plate: str) -> None:
         '''
-        Método para analisar manualmente uma placa e validar a mesma
+        Método para analisar manualmente uma placa e validar a mesma, desenvolvida apenas para teste
         '''
 
         if len(plate) == 7:
