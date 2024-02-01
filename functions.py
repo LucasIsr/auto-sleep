@@ -59,7 +59,7 @@ class AtlasFunctions:
 
         url.clearText('//*[@id="mui-6"]')
 
-        d2 = datetime.date.today() - datetime.timedelta(days=1)
+        d2 = datetime.date.today() - datetime.timedelta(days=2)
         d2 = d2.strftime('%d%m%Y')
         d1 = datetime.date.today() - datetime.timedelta(days=1)
         d1 = d1.strftime('%d%m%Y')
