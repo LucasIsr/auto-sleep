@@ -5,6 +5,7 @@ import os
 import shutil
 import pandas as pd
 from threading import Thread
+import psycopg2
 
 
 with open('paths.txt', mode='r', encoding='utf-8') as path_file:
@@ -137,10 +138,6 @@ class AtlasFunctions:
                 os.remove(os.path.join(os.path.join(PLACAS_PATH, folder), f'{folder}.xlsx'))
                 os.rmdir(os.path.join(PLACAS_PATH, folder))
 
-        for file in os.listdir(DOWNLOAD_PATH):
-            if 'Relatorio Alertas.xlsx' in file:
-                os.remove(os.path.join(DOWNLOAD_PATH, file))
-
     @staticmethod
     def extract_alert():
         '''
@@ -177,7 +174,7 @@ class AtlasFunctions:
 
         url.clickElement('//*[@id="relatorioLogistica"]/li[1]/a')
 
-        time.sleep(2)
+        time.sleep(5)
 
         url.switchWindow(1)
 
@@ -358,4 +355,59 @@ class ReportsFunctions:
                     dict_final['data'] = None
                     dict_final['index'] = None
                     contador = 1
+
+    @staticmethod
+    def insert_result() -> None:
+        for file in os.listdir(PLACAS_PATH):
+            if 'resultado' in file:
+                try:
+                    df = pd.read_excel(os.path.join(PLACAS_PATH, file))
+                    df['dt_insercao'] = datetime.date.today()
+                    df['chave'] = df.apply(lambda x: f'{x["Placa"]}-{x["dt_insercao"]}', axis=1)
+                    
+                    con = psycopg2.connect(host='4.228.57.67', database='db_vibra', user='postgres', password='pRxI65oIubsdTlf')
+                    cur = con.cursor()
+
+                    values = df[
+                        [
+                            'chave',
+                            'Placa',
+                            'Status',
+                            'dt_insercao'
+                        ]
+                    ]
+
+                    values = [tuple(row) for row in values.values]
+
+                    columns = [
+                        'chave',
+                        'placa',
+                        'status',
+                        'dt_insercao',
+                    ]
+
+                    initial_command = f'''
+                        INSERT INTO sc_diversos.tb_intersticio ({', '.join(columns)})
+                        VALUES ({', '.join(['%s'] * len(columns))})
+                        ON CONFLICT (chave) DO NOTHING;
+                    '''
+
+                    cur.executemany(initial_command, values)
+
+                    update_command = f'''
+                        INSERT INTO sc_diversos.tb_intersticio ({', '.join(columns)})
+                        VALUES ({', '.join(['%s'] * len(columns))})
+                        ON CONFLICT (chave) DO UPDATE
+                        SET {', '.join([f"{column} = excluded.{column}" for column in columns])};
+                    '''
+
+                    cur.executemany(update_command, values)
+
+                    con.commit()
+                    
+                except Exception as e:
+                    print(e)
+                finally:
+                    cur.close()
+                    con.close()
 
