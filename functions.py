@@ -16,6 +16,9 @@ with open('paths.txt', mode='r', encoding='utf-8') as path_file:
         if row.strip().split('=')[0] == 'PLACAS_PATH':
             PLACAS_PATH = row.strip().split('=')[1]
 
+        if row.strip().split('=')[0] == 'POSTGRE_PASSWORD':
+            POSTGRE_PASSWORD = row.strip().split('=')[1]
+
 
 class AtlasFunctions:
 
@@ -365,7 +368,7 @@ class ReportsFunctions:
                     df['dt_insercao'] = datetime.date.today()
                     df['chave'] = df.apply(lambda x: f'{x["Placa"]}-{x["dt_insercao"]}', axis=1)
                     
-                    con = psycopg2.connect(host='4.228.57.67', database='db_vibra', user='postgres', password='pRxI65oIubsdTlf')
+                    con = psycopg2.connect(host='4.228.57.67', database='db_vibra', user='postgres', password=POSTGRE_PASSWORD)
                     cur = con.cursor()
 
                     values = df[
