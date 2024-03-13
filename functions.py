@@ -24,7 +24,16 @@ class AtlasFunctions:
 
 
     @staticmethod
-    def extract_position():
+    def clean():
+        for file in os.listdir(DOWNLOAD_PATH):
+            if '.' in file:
+                os.remove(os.path.join(DOWNLOAD_PATH, file))
+
+        for file in os.listdir(PLACAS_PATH):
+            os.remove(os.path.join(PLACAS_PATH, file))
+
+    @staticmethod
+    def extract_position(d1: str | None = None, d2: str | None = None):
         '''
         Metodo para extrair relatorio de posicao do Atlas
         '''
@@ -121,7 +130,7 @@ class AtlasFunctions:
                                     os.remove(os.path.join(file_path, file))
 
                             for file_placa in os.listdir(DOWNLOAD_PATH):
-                                if 'Relatorio Posicao.xlsx' in file_placa:
+                                if 'Relatorio Posicao' in file_placa:
                                     placa_folder = os.path.join(PLACAS_PATH, placa)
                                     shutil.move(os.path.join(DOWNLOAD_PATH, file_placa), os.path.join(placa_folder, f'{placa}.xlsx'))
                                     thread = Thread(target=ReportsFunctions.analyze_reports(placa))
@@ -142,7 +151,7 @@ class AtlasFunctions:
                 os.rmdir(os.path.join(PLACAS_PATH, folder))
 
     @staticmethod
-    def extract_alert():
+    def extract_alert(date: str | None = None):
         '''
         Metodo utilizado para extrair o relatorio de alertas pernoite do Atlas 
         '''
@@ -183,15 +192,15 @@ class AtlasFunctions:
 
         url.clearField('//*[@id="mui-6"]')
 
-        d2 = datetime.date.today() - datetime.timedelta(days=1)
-        d2 = str(d2.strftime('%d/%m/%Y'))
-        url.clearText('//*[@id="mui-10"]')
-        url.sendKeys('//*[@id="mui-10"]', d2)
+        if not date:
+            date = datetime.date.today() - datetime.timedelta(days=1)
+            date = str(date.strftime('%d/%m/%Y'))
 
-        d1 = datetime.date.today() - datetime.timedelta(days=1)
-        d1 = str(d1.strftime('%d/%m/%Y'))
+        url.clearText('//*[@id="mui-10"]')
+        url.sendKeys('//*[@id="mui-10"]', date)
+
         url.clearText('//*[@id="mui-11"]')
-        url.sendKeys('//*[@id="mui-11"]', d1)
+        url.sendKeys('//*[@id="mui-11"]', date)
 
         time.sleep(2)
 
@@ -360,13 +369,23 @@ class ReportsFunctions:
                     contador = 1
 
     @staticmethod
-    def insert_result() -> None:
+    def insert_result(d1: str | None = None, d2: str | None = None) -> None:
         for file in os.listdir(PLACAS_PATH):
             if 'resultado' in file:
                 try:
+                    if not d2:
+                        d2 = datetime.date.today() - datetime.timedelta(days=1)
+                        d2 = str(d2.strftime('%d/%m/%Y'))
+
+                    if not d1:
+                        d1 = datetime.date.today() - datetime.timedelta(days=1)
+                        d1 = str(d1.strftime('%d/%m/%Y'))
+
                     df = pd.read_excel(os.path.join(PLACAS_PATH, file))
                     df['dt_insercao'] = datetime.date.today()
                     df['chave'] = df.apply(lambda x: f'{x["Placa"]}-{x["dt_insercao"]}', axis=1)
+                    df['d1'] = d1
+                    df['d2'] = d2
                     
                     con = psycopg2.connect(host='4.228.57.67', database='db_vibra', user='postgres', password=POSTGRE_PASSWORD)
                     cur = con.cursor()
@@ -376,7 +395,9 @@ class ReportsFunctions:
                             'chave',
                             'Placa',
                             'Status',
-                            'dt_insercao'
+                            'dt_insercao',
+                            'd1',
+                            'd2',
                         ]
                     ]
 
@@ -387,6 +408,8 @@ class ReportsFunctions:
                         'placa',
                         'status',
                         'dt_insercao',
+                        'dt_analise_1',
+                        'dt_analise_2',
                     ]
 
                     initial_command = f'''
