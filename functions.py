@@ -72,14 +72,17 @@ class AtlasFunctions:
 
         url.clearText('//*[@id="mui-6"]')
 
-        d2 = datetime.date.today() - datetime.timedelta(days=2)
-        d2 = d2.strftime('%d%m%Y')
-        d1 = datetime.date.today() - datetime.timedelta(days=1)
-        d1 = d1.strftime('%d%m%Y')
+        if not d2:
+            d2 = datetime.date.today() - datetime.timedelta(days=2)
+            d2 = d2.strftime('%d%m%Y')
+
+        if not d1:
+            d1 = datetime.date.today() - datetime.timedelta(days=1)
+            d1 = d1.strftime('%d%m%Y')
 
         time.sleep(2)
 
-        url.sendKeys('//*[@id="mui-6"]', str(d2))
+        url.sendKeys('//*[@id="mui-6"]', str(d1))
 
         for _ in range(5):
             try:
@@ -92,7 +95,7 @@ class AtlasFunctions:
             
 
         url.clearText('//*[@id="mui-7"]')
-        url.sendKeys('//*[@id="mui-7"]', str(d1))
+        url.sendKeys('//*[@id="mui-7"]', str(d2))
 
         for _ in range(5):
             try:
@@ -375,11 +378,11 @@ class ReportsFunctions:
                 try:
                     if not d2:
                         d2 = datetime.date.today() - datetime.timedelta(days=1)
-                        d2 = str(d2.strftime('%d/%m/%Y'))
+                        d2 = str(d2.strftime('%Y-%m-%d'))
 
                     if not d1:
                         d1 = datetime.date.today() - datetime.timedelta(days=1)
-                        d1 = str(d1.strftime('%d/%m/%Y'))
+                        d1 = str(d1.strftime('%Y-%m-%d'))
 
                     df = pd.read_excel(os.path.join(PLACAS_PATH, file))
                     df['dt_insercao'] = datetime.date.today()
