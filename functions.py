@@ -46,25 +46,21 @@ class AtlasFunctions:
                 if row.strip().split('=')[0] == 'SENHA':
                     SENHA = row.strip().split('=')[1]
 
-        url = Link(url='https://connect.atlasgr.com.br/portalatlas/Atlas_Login.php', driver='Chrome', sleep=1)
+        url = Link(url='http://app-vibra.atlasgr.com.br/', driver='Chrome', sleep=1)
 
         url.openLink()
 
         url.maximize()
 
-        url.sendKeys('//*[@id="edtEmpresa"]', 'Atlasbr')
+        url.sendKeys('//*[@id="mui-1"]', USUARIO )
 
-        url.sendKeys('//*[@id="edtUsuario"]', USUARIO)
+        url.sendKeys('//*[@id="mui-2"]', SENHA )
 
-        url.sendKeys('//*[@id="edtSenha"]', SENHA)
+        url.clickElement('//*[@id="__next"]/div[1]/div/div/div/div[2]/div/div/button')
 
-        url.clickElement('//*[@id="frmPai"]/div/div[4]/div/i')
+        url.clickElement('//*[@id="__next"]/div[1]/div[1]/div[3]/div[3]/div[1]')
 
-        url.clickElement('//*[@id="botaologistica"]/a')
-
-        url.clickElement('//*[@id="logistica"]/li[2]/a')
-
-        url.clickElement('//*[@id="relatorioLogistica"]/li[3]/a')
+        url.clickElement('//*[@id="__next"]/div[1]/div[1]/div[3]/div[3]/div[2]/div[3]/div')
 
         time.sleep(3)
 
@@ -82,7 +78,7 @@ class AtlasFunctions:
 
         time.sleep(2)
 
-        url.sendKeys('//*[@id="mui-6"]', str(d1))
+        url.sendKeys('//*[@id="mui-6"]', str(d2))
 
         for _ in range(5):
             try:
@@ -92,10 +88,9 @@ class AtlasFunctions:
                 alerta.accept()
             except: 
                 pass 
-            
 
         url.clearText('//*[@id="mui-7"]')
-        url.sendKeys('//*[@id="mui-7"]', str(d2))
+        url.sendKeys('//*[@id="mui-7"]', str(d1))
 
         for _ in range(5):
             try:
@@ -108,7 +103,10 @@ class AtlasFunctions:
             
         for file in os.listdir(DOWNLOAD_PATH):
             if 'Relatorio Alertas.xlsx' in file:
-                df = pd.read_excel(os.path.join(DOWNLOAD_PATH, file))
+                try:
+                    df = pd.read_excel(os.path.join(DOWNLOAD_PATH, file))
+                except Exception as e:
+                    print(e)
                 df = df.drop_duplicates(subset='Placa')
                 for _, linha in df.iterrows():
                     x = 0
@@ -167,32 +165,28 @@ class AtlasFunctions:
                     SENHA = row.strip().split('=')[1]
 
 
-        url = Link(url='https://connect.atlasgr.com.br/portalatlas/Atlas_Login.php', driver='Chrome', sleep=1)
+        url = Link(url='http://app-vibra.atlasgr.com.br/', driver='Chrome', sleep=1)
 
         url.openLink()
 
         url.maximize()
 
-        url.clearField('//*[@id="edtEmpresa"]')
+        url.sendKeys('//*[@id="mui-1"]', USUARIO )
 
-        url.sendKeys('//*[@id="edtEmpresa"]', 'ATLASBR')
+        url.sendKeys('//*[@id="mui-2"]', SENHA )
 
-        url.sendKeys('//*[@id="edtUsuario"]', USUARIO )
+        url.clickElement('//*[@id="__next"]/div[1]/div/div/div/div[2]/div/div/button')
 
-        url.sendKeys('//*[@id="edtSenha"]', SENHA )
+        url.clickElement('//*[@id="__next"]/div[1]/div[1]/div[3]/div[3]/div[1]')
 
-        url.clickElement('//*[@id="frmPai"]/div/div[4]/div/i')
+        url.clickElement('//*[@id="__next"]/div[1]/div[1]/div[3]/div[3]/div[2]/div[1]/div')
 
-        url.clickElement('//*[@id="botaologistica"]/a')
-
-        url.clickElement('//*[@id="logistica"]/li[2]/a')
-
-        url.clickElement('//*[@id="relatorioLogistica"]/li[1]/a')
+        #url.clickElement('//*[@id="relatorioLogistica"]/li[1]/a')
 
         time.sleep(5)
 
         url.switchWindow(1)
-
+        
         url.clearField('//*[@id="mui-6"]')
 
         if not date:

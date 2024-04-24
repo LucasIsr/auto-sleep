@@ -4,36 +4,42 @@ import datetime
 
 print(f'Início: {datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}')
 
-# Relatório de alertas - d-1
-# Relatório de posições - d-2 / d-1
+# Definir essa variável apenas para execução manual, None por padrão
+main_date = None #datetime.date(year=2024, month=4, day=4)
 
-data_inicio = datetime.date(2024, 3, 4)
-data_fim = datetime.date(2024, 3, 12)
+d_1 = None
+d_2 = None
 
-while data_inicio <= data_fim:
+if main_date:
+    d_1 = main_date - datetime.timedelta(days=1)
+    d_1 = d_1.strftime("%d/%m/%Y")
 
+    d_2 = main_date - datetime.timedelta(days=2)
+    d_2 = d_2.strftime("%d/%m/%Y")
+
+result = False
+
+while not result:
     try:
-        d1 = data_inicio - datetime.timedelta(days=1)
+        # Relatório de alertas - d-1
+        # Relatório de posições - d-2 / d-1
 
         # Limpando pastas antes da execução
         AtlasFunctions.clean()
 
         # Extraindo o relatório principal de alertas contendo todas as placas necessárias
         print('Iniciando extração do relatório de alertas')
-        AtlasFunctions.extract_alert(str(data_inicio.strftime('%d/%m/%Y')))
+        AtlasFunctions.extract_alert(d_1)
 
         # Extraindo o relatório de cada placa baseado no relatório de alertas e já fazendo a análise de instertício
         print('Extraindo e analisando as placas')
-        AtlasFunctions.extract_position(str(d1.strftime('%d/%m/%Y')), str(data_inicio.strftime('%d/%m/%Y')))
+        AtlasFunctions.extract_position(d1=d_1, d2=d_2)
 
         print('Inputando dados de resultado no banco')
-        ReportsFunctions.insert_result(str(d1.strftime('%d/%m/%Y')), str(data_inicio.strftime('%d/%m/%Y')))
+        ReportsFunctions.insert_result()
 
-        print(f'Data {data_inicio} bem sucedida!')
-        data_inicio += datetime.timedelta(days=1)
+        result = True
 
-    except:
-        print(f'Data {data_inicio} falhou.')
-        break
-
-print(f'Fim: {datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}')
+    except Exception as e:
+        with open('log.txt', 'a') as file:
+            file.write(f'Log de erro {datetime.datetime.now()}   Erro: {e}\n')
