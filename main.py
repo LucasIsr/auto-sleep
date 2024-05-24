@@ -5,7 +5,7 @@ import datetime
 print(f'Início: {datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}')
 
 # Definir essa variável apenas para execução manual, None por padrão
-main_date = None #datetime.date(year=2024, month=4, day=4)
+main_date = None #datetime.date(year=2024, month=5, day=23)
 
 d_1 = None
 d_2 = None
@@ -23,7 +23,6 @@ while not result:
     try:
         # Relatório de alertas - d-1
         # Relatório de posições - d-2 / d-1
-
         # Limpando pastas antes da execução
         AtlasFunctions.clean()
 

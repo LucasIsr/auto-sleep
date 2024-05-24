@@ -113,6 +113,7 @@ class AtlasFunctions:
                     while x == 0:
                         try:
                             placa = linha['Placa']
+                            dt = linha['DT']
                             url.sendKeys('//*[@id="mui-5"]', placa)
 
                             url.pressKey('enter')
@@ -132,9 +133,10 @@ class AtlasFunctions:
 
                             for file_placa in os.listdir(DOWNLOAD_PATH):
                                 if 'Relatorio Posicao' in file_placa:
+                                    time.sleep(1)
                                     placa_folder = os.path.join(PLACAS_PATH, placa)
                                     shutil.move(os.path.join(DOWNLOAD_PATH, file_placa), os.path.join(placa_folder, f'{placa}.xlsx'))
-                                    thread = Thread(target=ReportsFunctions.analyze_reports(placa))
+                                    thread = Thread(target=ReportsFunctions.analyze_reports(placa, dt))
                                     thread.start()
 
                             x = 1
@@ -222,7 +224,7 @@ class ReportsFunctions:
 
 
     @staticmethod
-    def analyze_reports(plate: str) -> None:
+    def analyze_reports(plate: str, dt: str) -> None:
         '''
         Metodo que analisara o relatorio de posicoes e ira fazer o calculo de 8 horas descansadas
         '''
@@ -238,7 +240,6 @@ class ReportsFunctions:
             placa_folder = os.path.join(PLACAS_PATH, plate) # Juntando a pasta de placas geral com a placa tirada da planilha de alerta
             file_path = os.path.join(placa_folder, str(plate) + '.xlsx') # Juntando o arquivo xlsx com a pasta da respectiva placa 
             df = pd.read_excel(file_path) # Lendo o relatorio de posicao para tranformar em um data frame
-
             dict_inicial = { # Dicionario criado para armazenar o index e data hora da primeira velocidade zerada 
                 'data': None,
                 'index': None
@@ -255,8 +256,28 @@ class ReportsFunctions:
             }
                 
             contador = 1 # Responsavel por fazer a comparacao do index para saber se temos uma sequencia de velocidade zerada 
+            linha_final = len(df) - 1
             for index, row in df.iterrows():
-                if row['Velocidade'] == 0: # Entra na condicao abaixo se a velocidade for zero
+                if index == linha_final:
+                    if dict_inicial['data'] and dict_final['data']: # Armazena a data hora da primeira e ultima velocidade zerada 
+                        calc_insterticio = datetime.datetime.strptime(dict_final['data'], '%d/%m/%Y-%H:%M:%S') - \
+                            datetime.datetime.strptime(dict_inicial['data'], '%d/%m/%Y-%H:%M:%S')
+                            # Convertendo a data hora da planilha para datetime e fazendo o calculo de data final - data inicial 
+                        
+                        horas_realizadas = calc_insterticio.total_seconds() / 3600 # O resultado total de segundos sera divido por 3600s
+
+                        if horas_realizadas > 8.0 or df['CPF'].nunique() > 1: # Define o status como cumprido
+                            dict_input['Status'] = 'Cumprido'                      
+
+                    # Zera após fazer a comparação e o contador 
+                    dict_inicial['data'] = None
+                    dict_inicial['index'] = None
+
+                    dict_final['data'] = None
+                    dict_final['index'] = None
+                    contador = 1
+                
+                elif row['Velocidade'] == 0: # Entra na condicao abaixo se a velocidade for zero
                     if not dict_inicial['data']: # Entra nessa condicao se o dict inicial nao estiver preenchido 
                         dict_inicial['data'] = row['Data']
                         dict_inicial['index'] = index
@@ -279,7 +300,7 @@ class ReportsFunctions:
                         calc_insterticio = datetime.datetime.strptime(dict_final['data'], '%d/%m/%Y-%H:%M:%S') - \
                             datetime.datetime.strptime(dict_inicial['data'], '%d/%m/%Y-%H:%M:%S')
                             # Convertendo a data hora da planilha para datetime e fazendo o calculo de data final - data inicial 
-                            
+                        
                         horas_realizadas = calc_insterticio.total_seconds() / 3600 # O resultado total de segundos sera divido por 3600s
 
                         if horas_realizadas > 8.0 or df['CPF'].nunique() > 1: # Define o status como cumprido
@@ -292,7 +313,7 @@ class ReportsFunctions:
                     dict_final['data'] = None
                     dict_final['index'] = None
                     contador = 1
-
+                
             df_result = pd.read_excel(os.path.join(PLACAS_PATH, 'resultado.xlsx'))
 
             df_main = pd.DataFrame(
@@ -300,7 +321,8 @@ class ReportsFunctions:
             )
                         
             df_result = pd.concat([df_result, df_main])
-            df_result = df_result[['Placa', 'Status']]
+            df_result['DT'] = dt
+            df_result = df_result[['Placa', 'Status', 'DT']]
             df_result.to_excel(os.path.join(PLACAS_PATH, 'resultado.xlsx'))
                         
     @staticmethod
@@ -383,6 +405,7 @@ class ReportsFunctions:
                     df['chave'] = df.apply(lambda x: f'{x["Placa"]}-{x["dt_insercao"]}', axis=1)
                     df['d1'] = d1
                     df['d2'] = d2
+                    print(df)
                     
                     con = psycopg2.connect(host='4.228.57.67', database='db_vibra', user='postgres', password=POSTGRE_PASSWORD)
                     cur = con.cursor()
@@ -395,6 +418,7 @@ class ReportsFunctions:
                             'dt_insercao',
                             'd1',
                             'd2',
+                            'DT'
                         ]
                     ]
 
@@ -407,6 +431,7 @@ class ReportsFunctions:
                         'dt_insercao',
                         'dt_analise_1',
                         'dt_analise_2',
+                        'dt'
                     ]
 
                     initial_command = f'''
