@@ -316,12 +316,12 @@ class ReportsFunctions:
                 
             df_result = pd.read_excel(os.path.join(PLACAS_PATH, 'resultado.xlsx'))
 
+            dict_input['DT'] = dt
             df_main = pd.DataFrame(
                 dict_input
             )
                         
             df_result = pd.concat([df_result, df_main])
-            df_result['DT'] = dt
             df_result = df_result[['Placa', 'Status', 'DT']]
             df_result.to_excel(os.path.join(PLACAS_PATH, 'resultado.xlsx'))
                         
