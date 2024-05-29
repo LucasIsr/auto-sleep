@@ -393,7 +393,7 @@ class ReportsFunctions:
             if 'resultado' in file:
                 try:
                     if not d2:
-                        d2 = datetime.date.today() - datetime.timedelta(days=1)
+                        d2 = datetime.date.today() - datetime.timedelta(days=2)
                         d2 = str(d2.strftime('%Y-%m-%d'))
 
                     if not d1:
